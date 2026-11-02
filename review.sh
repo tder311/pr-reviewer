@@ -11,7 +11,8 @@ hunt_model=${HUNT_MODEL:-opus} verify_model=${VERIFY_MODEL:-sonnet} write_model=
 lenses=${LENSES:-correctness data operations code-review}
 need=${VOTES_NEEDED:-2} par=${PARALLEL:-6}
 slug=${repo//\//__}
-export WORK=${PR_REVIEWER_CACHE:-$HOME/.cache/pr-reviewer}/$slug
+# PR_REVIEWER_WORK points at an existing checkout (the cloud task's clone); otherwise use a cached clone.
+export WORK=${PR_REVIEWER_WORK:-${PR_REVIEWER_CACHE:-$HOME/.cache/pr-reviewer}/$slug}
 run=$here/runs/$slug-$pr
 SECONDS=0
 failed=""
@@ -20,15 +21,18 @@ rm -rf "$run"
 mkdir -p "$run/hunt" "$run/verify"
 "$here/gather.sh" "$repo" "$pr" "$me" >"$run/context.md"
 
-[ -d "$WORK/.git" ] || gh repo clone "$repo" "$WORK" -- --filter=blob:none --quiet
-# pull/<n>/head survives the head branch being deleted, unlike `gh pr checkout`.
-git -C "$WORK" fetch --quiet origin "+refs/heads/*:refs/remotes/origin/*" "+pull/$pr/head:refs/pr-reviewer/$pr"
-git -C "$WORK" checkout --quiet --detach "refs/pr-reviewer/$pr"
-
-pr_json=$(gh pr view "$pr" -R "$repo" --json baseRefName,headRefOid,title)
-base=origin/$(jq -r .baseRefName <<<"$pr_json")
-sha=$(jq -r .headRefOid <<<"$pr_json")
+pr_json=$(gh api "repos/$repo/pulls/$pr")
+base_ref=$(jq -r .base.ref <<<"$pr_json")
+base=origin/$base_ref
+sha=$(jq -r .head.sha <<<"$pr_json")
 title=$(jq -r .title <<<"$pr_json")
+
+[ -d "$WORK/.git" ] || git clone --quiet --filter=blob:none "https://github.com/$repo.git" "$WORK"
+# Hunters and verifiers need history for merge-base and blame.
+[ "$(git -C "$WORK" rev-parse --is-shallow-repository)" = false ] || git -C "$WORK" fetch --quiet --unshallow origin
+# pull/<n>/head survives the head branch being deleted, unlike `gh pr checkout`.
+git -C "$WORK" fetch --quiet origin "+refs/heads/$base_ref:refs/remotes/origin/$base_ref" "+pull/$pr/head:refs/pr-reviewer/$pr"
+git -C "$WORK" checkout --quiet --detach "refs/pr-reviewer/$pr"
 last=$(gh api "repos/$repo/pulls/$pr/reviews" --paginate \
   --jq "[.[] | select(.user.login == \"$me\" and .state != \"PENDING\")] | last | .commit_id // empty")
 if [ -n "$last" ] && [ "$last" != "$sha" ] && git -C "$WORK" merge-base --is-ancestor "$last" HEAD 2>/dev/null; then
