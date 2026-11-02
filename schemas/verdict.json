@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["verdict", "evidence", "pre_existing", "severity"],
+  "properties": {
+    "verdict": {"enum": ["CONFIRMED", "REFUTED", "UNSURE"]},
+    "evidence": {"type": "string"},
+    "pre_existing": {"type": "boolean"},
+    "severity": {"enum": ["Important", "Nit"]}
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["candidates", "already_raised", "dropped"],
+  "properties": {
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "path", "line", "claim", "failure_scenario", "evidence", "introduced_by_pr", "found_by"],
+        "properties": {
+          "id": {"type": "string"},
+          "path": {"type": "string"},
+          "line": {"type": "integer"},
+          "claim": {"type": "string"},
+          "failure_scenario": {"type": "string"},
+          "evidence": {"type": "string"},
+          "introduced_by_pr": {"type": "boolean"},
+          "found_by": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "already_raised": {"type": "array", "items": {"type": "string"}},
+    "dropped": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim", "reason"],
+        "properties": {"claim": {"type": "string"}, "reason": {"type": "string"}}
+      }
+    }
+  }
+}

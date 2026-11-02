@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["candidates"],
+  "properties": {
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "line", "claim", "failure_scenario", "evidence", "introduced_by_pr"],
+        "properties": {
+          "path": {"type": "string"},
+          "line": {"type": "integer"},
+          "claim": {"type": "string"},
+          "failure_scenario": {"type": "string"},
+          "evidence": {"type": "string"},
+          "introduced_by_pr": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

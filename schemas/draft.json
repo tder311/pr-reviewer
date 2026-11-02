@@ -1,0 +1,99 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "risk",
+    "risk_reason",
+    "look_yourself",
+    "explainer",
+    "findings",
+    "already_raised",
+    "dropped"
+  ],
+  "properties": {
+    "risk": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "risk_reason": {
+      "type": "string"
+    },
+    "look_yourself": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "explainer": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "path",
+          "line",
+          "body"
+        ],
+        "properties": {
+          "severity": {
+            "enum": [
+              "Important",
+              "Nit",
+              "Pre-existing"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer"
+          },
+          "start_line": {
+            "type": "integer"
+          },
+          "body": {
+            "type": "string"
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "already_raised": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dropped": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim",
+          "reason"
+        ],
+        "properties": {
+          "claim": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
