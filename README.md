@@ -17,7 +17,7 @@ The cloud task's prompt is `cloud-task-prompt.md`. After editing it, update the 
 
 `review.sh` skips PRs that are closed or where tder311 isn't a requested reviewer; `FORCE=1` overrides that.
 
-Settings, all optional: `HUNT_MODEL` (opus), `VERIFY_MODEL` (sonnet), `WRITE_MODEL` (opus), `LENSES` (correctness data operations code-review), `VOTES_NEEDED` (2), `PARALLEL` (6), `REVIEWER` (tder311), `PR_REVIEWER_CACHE` (~/.cache/pr-reviewer).
+Settings, all optional: `HUNT_MODEL` (opus), `VERIFY_MODEL` (sonnet), `WRITE_MODEL` (opus), `LENSES` (correctness data operations code-review), `VOTES_NEEDED` (2), `PARALLEL` (6), `REVIEWER` (tder311), `PR_REVIEWER_CACHE` (~/.cache/pr-reviewer), `CLAIM` (unset). With `CLAIM=1`, as the cloud task runs it, `review.sh` holds a placeholder pending review while it drafts. Every requested reviewer fires its own GitHub event, so this makes later runs for the same PR skip. `post-pending.sh` replaces the placeholder.
 
 Runs count against the Claude plan the `claude` CLI is signed in with.
 
@@ -26,4 +26,4 @@ Runs count against the Claude plan the `claude` CLI is signed in with.
 - `prompts/`: `hunt.md` plus one file per angle in `lenses/`, `dedupe.md`, `verify.md` plus one file per stance in `stances/`, and `write.md`
 - `schemas/`: the structured output each stage must return
 - `rubrics/`: per-repo checklists added to the hunters' prompts, named `<owner>__<repo>.md`
-- `gather.sh`, `stage.sh`, `review.jq`, `brief.jq`: plumbing for `review.sh`
+- `gather.sh`, `claim.sh`, `stage.sh`, `review.jq`, `brief.jq`: plumbing for `review.sh`

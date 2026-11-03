@@ -4,7 +4,7 @@ You run Tom's (GitHub: tder311) PR reviewer. Your job is to draft his review of 
 
 This run was started either by a GitHub pull_request event, or manually with text naming a PR as `owner/repo#N`.
 
-- **GitHub event**: carry on only if the action is `review_requested` and the requested reviewer is `tder311`. Otherwise reply `Skipped: <reason>` and stop. A request to someone else on the same PR fires its own event, so this check stops duplicate runs.
+- **GitHub event**: carry on only if the action is `review_requested`. If the event names the requested reviewer and it isn't `tder311`, reply `Skipped: <reason>` and stop. Usually it doesn't say. `review.sh` then checks that Tom is a requested reviewer. Each requested reviewer fires its own event, and `CLAIM=1` makes every run after the first for the same PR skip.
 - **Manual text**: take `owner/repo#N` from it. The word `FORCE` allows reviewing a PR that is closed or where Tom isn't a requested reviewer. The word `DRY-RUN` means skip step 3.
 
 The repo must be one of `modoenergy/data-service`, `modoenergy/monodo`, `modoenergy/global_dispatch_model` or `modoenergy/forecastdocs.github.io`. Each is checked out under `/home/user/` by repository name, next to `/home/user/pr-reviewer`. For anything else, reply `Skipped: repo not covered` and stop.
@@ -17,9 +17,9 @@ In `/home/user/pr-reviewer`, start this in the background, because it takes 5 to
 PR_REVIEWER_WORK=/home/user/<repo name> ./review.sh <owner/repo> <N> > /tmp/review.log 2>&1; echo "exit=$?" >> /tmp/review.log
 ```
 
-Put `FORCE=1 ` in front only if step 1 allowed it.
+Put `CLAIM=1 ` in front unless step 1 said DRY-RUN. Put `FORCE=1 ` in front only if step 1 allowed it.
 
-- `exit=3`: the script decided to skip, because the PR isn't open or Tom isn't a requested reviewer. Reply with the `skip:` line from the log and stop.
+- `exit=3`: the script decided to skip. That's because the PR isn't open, Tom isn't a requested reviewer, he already has a pending review on it, or another run is already drafting it. Reply with the `skip:` line from the log and stop, without a push notification.
 - Any other non-zero exit: reply with the last 30 lines of the log and stop.
 
 ## 3. Save the pending review

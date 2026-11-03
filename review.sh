@@ -26,6 +26,11 @@ base_ref=$(jq -r .base.ref <<<"$pr_json")
 base=origin/$base_ref
 sha=$(jq -r .head.sha <<<"$pr_json")
 title=$(jq -r .title <<<"$pr_json")
+# CLAIM=1 (the cloud task) holds a placeholder pending review while drafting, so a second run for this PR skips.
+if [ -n "${CLAIM:-}" ]; then
+  "$here/claim.sh" "$repo" "$pr" take "$sha"
+  trap '[ $? -eq 0 ] || "$here/claim.sh" "$repo" "$pr" release' EXIT
+fi
 
 [ -d "$WORK/.git" ] || git clone --quiet --filter=blob:none "https://github.com/$repo.git" "$WORK"
 # Hunters and verifiers need history for merge-base and blame.

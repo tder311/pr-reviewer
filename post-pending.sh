@@ -3,9 +3,11 @@
 # ./post-pending.sh runs/<owner>__<repo>-<pr>
 set -euo pipefail
 
+here=$(cd "$(dirname "$0")" && pwd)
 run=$1
 repo=$(jq -r .repo "$run/meta.json")
 pr=$(jq -r .pr "$run/meta.json")
+"$here/claim.sh" "$repo" "$pr" release
 
 if [ "$(jq '[.findings[] | select(.severity == "Important")] | length' "$run/draft.json")" = 0 ]; then
   echo "Nothing to fix before merge, so no pending review was saved on $repo#$pr."
