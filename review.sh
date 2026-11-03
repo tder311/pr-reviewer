@@ -91,6 +91,7 @@ jq -c '.candidates[]' "$run/deduped.json" | while read -r c; do
   for stance in skeptic tracer context; do
     {
       fill <"$here/prompts/verify.md"
+      cat "$here/prompts/severity.md"
       cat "$here/prompts/stances/$stance.md"
       printf '\n## The claim\n\n'
       jq '{path, line, claim, failure_scenario}' <<<"$c"
@@ -124,6 +125,7 @@ jq --slurpfile v "$run/verdicts.jsonl" --argjson need "$need" '
 # 4. Write: turn the survivors into Tom's draft and brief.
 {
   fill <"$here/prompts/write.md"
+  cat "$here/prompts/severity.md"
   printf '\n## Survivors\n\n'
   jq '[.[] | select(.kept) | del(.votes[].id)]' "$run/votes.json"
   printf '\n## Not confirmed, but some verifiers were unsure\n\n'

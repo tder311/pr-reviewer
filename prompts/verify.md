@@ -7,5 +7,5 @@ Answer:
 - REFUTED if the code shows it can't happen, or that it's handled.
 - UNSURE if it depends on something you can't see from the repo, such as production data or another service. Say what.
 
-Set `pre_existing` to true if the problem also exists on the base branch, so this PR didn't introduce it. Suggest `severity`: Important if it should be fixed before merge, Nit if it's real but minor. Keep `evidence` to the few lines of code and reasoning that settle it.
+Set `pre_existing` to true if this PR didn't introduce the problem. That means it already exists on the base branch, or this PR inherits it from shared code, such as a factory or base class that other regions use too. Suggest `severity` as defined below. Keep `evidence` to the few lines of code and reasoning that settle it.
 

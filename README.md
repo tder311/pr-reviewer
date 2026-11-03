@@ -2,7 +2,7 @@
 
 Drafts a review of a pull request when tder311 is asked to review it. The method follows Anthropic's [How the Claude Code team does code review](https://claude.dev/blog/solving-code-review-at-anthropic/): bug hunters search in parallel, three independent verifiers vote on each candidate, and a writer turns the survivors into a GitHub review.
 
-Nothing is submitted without tder311's say-so. The output is a private brief and a pending review that only its author can see. In the cloud task, he replies in the run's session ("comment", "approve, drop the nit", "discard") and the agent submits accordingly.
+Nothing is submitted without tder311's say-so. The output is a private brief and a pending review that only its author can see. Only Important findings (merging as is would break something) go in the pending review. Nits and pre-existing problems stay in the brief, where he can pick any to add. In the cloud task, he replies in the run's session ("comment", "approve, drop the nit", "discard") and the agent submits accordingly.
 
 ## Run it
 

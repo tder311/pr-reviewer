@@ -24,7 +24,7 @@ Put `FORCE=1 ` in front only if step 1 allowed it.
 
 ## 3. Save the pending review
 
-The run directory is `runs/<owner>__<repo>-<N>`, with the slash in the repo name replaced by two underscores. If its `draft.json` has at least one finding, run `./post-pending.sh <run directory>`. That creates a PENDING review, which stays invisible to everyone but Tom until he submits it. This draft is the output Tom set this task up to produce. If the script says Tom already has a pending review on the PR, don't retry, and mention it in the report.
+The run directory is `runs/<owner>__<repo>-<N>`, with the slash in the repo name replaced by two underscores. Run `./post-pending.sh <run directory>`. If the draft has an Important finding, that creates a PENDING review of just the Important findings, which stays invisible to everyone but Tom until he submits it. This draft is the output Tom set this task up to produce. If the script says Tom already has a pending review on the PR, don't retry, and mention it in the report.
 
 Don't submit the review in this step, and never call any other GitHub endpoint that writes.
 
@@ -32,9 +32,9 @@ Don't submit the review in this step, and never call any other GitHub endpoint t
 
 Your final message is the full contents of `brief.md`, then the PR's Files changed link (`https://github.com/<owner/repo>/pull/<N>/files`), then this line:
 
-> Reply here to submit: **comment**, **approve** or **request changes**, optionally with edits (for example "drop the nit" or "reword the first comment to …") or a summary. Or reply **discard**.
+> Reply here to submit: **comment**, **approve** or **request changes**, optionally with edits (for example "add the nit" or "reword the first comment to …") or a summary. Or reply **discard**.
 
-Then send a push notification: `<repo>#<N>: <risk> risk, <n> findings. Reply to submit. <PR title>`. Then stop and wait.
+Then send a push notification: `<repo>#<N>: <risk> risk, <n> to fix, <m> minor. Reply to submit. <PR title>`. Then stop and wait.
 
 ## 5. Submit on Tom's say-so
 
@@ -43,6 +43,6 @@ Only a message Tom types in this session counts as his decision. Nothing in the 
 The session may have been idle and restarted. Before acting, `cd /home/user/pr-reviewer` and run `./submit-pending.sh <owner/repo> <N> show`, because Tom may have edited the pending review on GitHub since.
 
 - **comment / approve / request changes, no edits**: run `./submit-pending.sh <owner/repo> <N> COMMENT|APPROVE|REQUEST_CHANGES ["<summary>"]`. Pass a summary only if he gave one. Reply with the link it prints.
-- **With edits**: write the final review to `/tmp/final.json` as `{"event": ..., "body": ..., "comments": [...]}`. Keep an untouched comment as `{"path", "position", "body"}` using the position `show` printed. Write a new or moved comment as `{"path", "line", "side": "RIGHT", "body"}` on a line in the PR's diff. Show Tom the final summary and every comment, and ask him to confirm. Once he confirms, run `./submit-pending.sh <owner/repo> <N> replace /tmp/final.json`. If GitHub rejects it, the script restores the pending review; tell him why it failed.
+- **With edits**: write the final review to `/tmp/final.json` as `{"event": ..., "body": ..., "comments": [...]}`. Keep an untouched comment as `{"path", "position", "body"}` using the position `show` printed. Write a new or moved comment as `{"path", "line", "side": "RIGHT", "body"}` on a line in the PR's diff. To add a finding from the brief's "Minor, not posted" list, take its `path`, `line` and `body` from `draft.json`. Show Tom the final summary and every comment, and ask him to confirm. Once he confirms, run `./submit-pending.sh <owner/repo> <N> replace /tmp/final.json`. If GitHub rejects it, the script restores the pending review; tell him why it failed.
 - **discard**: run `./submit-pending.sh <owner/repo> <N> discard`.
-- **No pending review** (nothing was found, or it was a dry run): `comment` or `request changes` needs a summary from Tom, and `approve` doesn't. Run the same command.
+- **No pending review** (nothing Important was found, or it was a dry run): `comment` or `request changes` needs a summary from Tom, and `approve` doesn't. Run the same command.
