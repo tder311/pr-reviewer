@@ -2,12 +2,13 @@
 
 Drafts a review of a pull request when tder311 is asked to review it. The method follows Anthropic's [How the Claude Code team does code review](https://claude.dev/blog/solving-code-review-at-anthropic/): bug hunters search in parallel, three independent verifiers vote on each candidate, and a writer turns the survivors into a GitHub review.
 
-Nothing is submitted without tder311's say-so. The output is a private brief and a pending review that only its author can see. Only Important findings (merging as is would break something) go in the pending review. Nits and pre-existing problems stay in the brief, where he can pick any to add. In the cloud task, he replies in the run's session ("comment", "approve, drop the nit", "discard") and the agent submits accordingly.
+The output is a private brief, ending in a verdict, and a review of the Important findings (merging as is would break something). Nits and pre-existing problems stay in the brief. The cloud task acts on the verdict with `auto-submit.sh`. It submits the review in tder311's name, with a footer saying it was posted automatically. Or it holds the review as a pending review only he can see. It holds when a stage failed, the PR changed during the run, the verdict is Approve on a high-risk PR, or the only open points need his judgement. For a held review, he replies in the run's session ("comment", "approve, add the nit", "discard") and the agent submits accordingly.
 
 ## Run it
 
 ```bash
 ./review.sh owner/repo 123                          # writes runs/<owner>__<repo>-<pr>/brief.md and review.json
+./auto-submit.sh runs/<owner>__<repo>-<pr>          # acts on the verdict: submits, or holds as a pending review
 ./post-pending.sh runs/<owner>__<repo>-<pr>          # saves the draft as a pending review
 ./submit-pending.sh owner/repo 123 show             # the pending review as it is now on GitHub
 ./submit-pending.sh owner/repo 123 COMMENT          # submit it (or APPROVE / REQUEST_CHANGES / replace final.json / discard)
@@ -17,7 +18,7 @@ The cloud task's prompt is `cloud-task-prompt.md`. After editing it, update the 
 
 `review.sh` skips PRs that are closed or where tder311 isn't a requested reviewer; `FORCE=1` overrides that.
 
-Settings, all optional: `HUNT_MODEL` (opus), `VERIFY_MODEL` (sonnet), `WRITE_MODEL` (opus), `LENSES` (correctness data operations code-review), `VOTES_NEEDED` (2), `PARALLEL` (6), `REVIEWER` (tder311), `PR_REVIEWER_CACHE` (~/.cache/pr-reviewer), `CLAIM` (unset). With `CLAIM=1`, as the cloud task runs it, `review.sh` holds a placeholder pending review while it drafts. Every requested reviewer fires its own GitHub event, so this makes later runs for the same PR skip. `post-pending.sh` replaces the placeholder.
+Settings, all optional: `HUNT_MODEL` (opus), `VERIFY_MODEL` (sonnet), `WRITE_MODEL` (opus), `LENSES` (correctness data operations code-review), `VOTES_NEEDED` (2), `PARALLEL` (6), `REVIEWER` (tder311), `PR_REVIEWER_CACHE` (~/.cache/pr-reviewer), `CLAIM` (unset). With `CLAIM=1`, as the cloud task runs it, `review.sh` holds a placeholder pending review while it drafts. Every requested reviewer fires its own GitHub event, so this makes later runs for the same PR skip. `auto-submit.sh` or `post-pending.sh` replaces the placeholder.
 
 Runs count against the Claude plan the `claude` CLI is signed in with.
 
