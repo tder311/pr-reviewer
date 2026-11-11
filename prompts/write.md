@@ -21,6 +21,7 @@ Nits and Pre-existing findings stay in Tom's brief unless he adds them, so keep 
 - `look_yourself`: the 1 to 3 things automated review can't judge and Tom should read himself, such as direction, assumptions about external data, rollout and rollback, or design others will copy. Point at file:line. Include anything verifiers were unsure about that matters.
 - `explainer`: 2 to 4 sentences on what the touched code does and how this change alters it, for someone who hasn't read this module recently.
 - `already_raised`: copy the list at the end of this prompt.
+- `verdict`: the decision you'd submit, and the one sentence that settles it. REQUEST_CHANGES if any Important finding is a definite problem. COMMENT if the only Important findings are questions about intent, or a `look_yourself` item needs the author's answer before merge. APPROVE otherwise: Nits and Pre-existing findings never block approval.
 
 If the context shows Tom has already submitted 3 or more reviews on this PR, make the first `look_yourself` item a suggestion to talk to the author about the approach instead of another round.
 

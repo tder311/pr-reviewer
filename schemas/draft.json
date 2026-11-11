@@ -8,7 +8,8 @@
     "explainer",
     "findings",
     "already_raised",
-    "dropped"
+    "dropped",
+    "verdict"
   ],
   "properties": {
     "risk": {
@@ -92,6 +93,26 @@
           "reason": {
             "type": "string"
           }
+        }
+      }
+    },
+    "verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "reason"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "APPROVE",
+            "COMMENT",
+            "REQUEST_CHANGES"
+          ]
+        },
+        "reason": {
+          "type": "string"
         }
       }
     }

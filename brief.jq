@@ -17,5 +17,6 @@ def marks: .votes | map({CONFIRMED: "✓", REFUTED: "✗"}[.verdict] // "?") | j
 + "\($votes[0] | bullets("\(.id) \(marks) \(if .kept then "kept" else "dropped" end): \(.claim) `\(.path):\(.line)`, found by \(.found_by | join(", "))"))\n\n"
 + "## Filtered before verification\n\n\($filtered[0].dropped | bullets("\(.claim): \(.reason)"))\n\n"
 + "## Dropped while writing\n\n\(.dropped | bullets("\(.claim): \(.reason)"))\n\n"
++ "## Verdict\n\n\(if .verdict then "**\({APPROVE: "Approve", COMMENT: "Comment", REQUEST_CHANGES: "Request changes"}[.verdict.decision]).** \(.verdict.reason)" else "- none" end)\n\n"
 + "---\n\nRun took \($mins) min; API-equivalent cost $\($cost), counted against your Claude plan. Review range: `\($range)`."
 + (if $failed == "" then "" else " Stages that failed:\($failed)." end) + "\n"
