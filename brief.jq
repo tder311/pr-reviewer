@@ -8,7 +8,8 @@ def marks: .votes | map({CONFIRMED: "✓", REFUTED: "✗"}[.verdict] // "?") | j
 | (.findings - $posted) as $held
 | "# \($repo)#\($pr): \($title)\n\n"
 + "**Risk: \(.risk).** \(.risk_reason)\n\n"
-+ "## To fix before merge (\($posted | length))\n\nThese make up your pending review.\n\n\($posted | bullets(finding))\n\n"
++ "## To fix before merge (\($posted | length))\n\nPosted as inline comments.\n\n\($posted | bullets(finding))\n\n"
++ "## Questions for the author (\(.author_questions // [] | length))\n\nPosted in the review's summary.\n\n\(.author_questions // [] | bullets(.))\n\n"
 + "## Minor, not posted (\($held | length))\n\nAdd any of these when you reply, for example \"comment, and add the nit\".\n\n\($held | bullets(finding))\n\n"
 + "## Look at these yourself\n\n\(.look_yourself | bullets(.))\n\n"
 + "## What the change does\n\n\(.explainer)\n\n"

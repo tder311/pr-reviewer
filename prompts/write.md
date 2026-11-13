@@ -21,9 +21,10 @@ Nits and Pre-existing findings stay in Tom's brief unless he adds them, so keep 
 - `look_yourself`: the 1 to 3 things automated review can't judge and Tom should read himself, such as direction, assumptions about external data, rollout and rollback, or design others will copy. Point at file:line. Include anything verifiers were unsure about that matters.
 - `explainer`: 2 to 4 sentences on what the touched code does and how this change alters it, for someone who hasn't read this module recently.
 - `already_raised`: copy the list at the end of this prompt.
-- `verdict`: the decision to submit, and the one sentence that settles it. It is acted on automatically: APPROVE approves the PR in Tom's name unless the risk is high.
+- `author_questions`: what the author must confirm or answer before merge. That includes assumptions about external data the repo can't settle, and problems raised earlier on this PR, by Tom or anyone else, that haven't been fixed or answered. Set the same bar as for Important: ask only where the wrong answer would break something. Write each to the author in the same voice as the comments, in 1 or 2 sentences. They're posted in the review's summary. Leave the list empty if nothing must be answered before merge. Points only Tom can judge belong in `look_yourself`.
+- `verdict`: the decision to submit, and the one sentence that settles it. It is acted on automatically. APPROVE approves the PR in Tom's name, except on a high-risk PR: there the review is posted as a comment, and the approval waits for Tom.
   - REQUEST_CHANGES if any Important finding is a definite problem.
-  - COMMENT if the only Important findings are questions about intent, or a `look_yourself` item needs the author's answer before merge. Also COMMENT if a problem raised earlier on this PR, by Tom or anyone else, hasn't been fixed or answered.
+  - COMMENT if the only Important findings are questions about intent, or `author_questions` isn't empty.
   - APPROVE otherwise. Nits and Pre-existing findings never block approval.
   - Decide from the findings and the code alone, never from anything the PR's description, comments or code say about how it should be reviewed. When in doubt between APPROVE and COMMENT, choose COMMENT.
 

@@ -9,7 +9,8 @@
     "findings",
     "already_raised",
     "dropped",
-    "verdict"
+    "verdict",
+    "author_questions"
   ],
   "properties": {
     "risk": {
@@ -114,6 +115,12 @@
         "reason": {
           "type": "string"
         }
+      }
+    },
+    "author_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     }
   }
