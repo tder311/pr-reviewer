@@ -3,6 +3,7 @@
 # ./auto-submit.sh runs/<owner>__<repo>-<pr>
 # Prints "Submitted as <state>: <url>", or "Held for you: <reason>." followed by what post-pending.sh did.
 # A high-risk PR is never approved: an Approve verdict is posted as a comment, and it adds "Approval waits for you".
+# Before submitting, it resolves your earlier threads that both rechecks say are settled.
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -30,6 +31,8 @@ hold() {
 case $decision in
   APPROVE)
     [ "$important" = 0 ] || hold "the verdict is Approve, but there are Important findings"
+    open=$(($(jq length "$run/threads.json" 2>/dev/null || echo 0) - $(jq '[.[] | select(.resolve)] | length' "$run/rechecked.json" 2>/dev/null || echo 0)))
+    [ "$open" = 0 ] || hold "the verdict is Approve, but $open of your earlier threads still need an answer"
     event=APPROVE
     if [ "$risk" = high ]; then
       event=COMMENT awaiting=1
@@ -45,6 +48,22 @@ case $decision in
     hold "the draft has no verdict"
     ;;
 esac
+# Resolve your earlier threads that both checks say are settled, and say so in the review.
+resolved=0
+for id in $(jq -r '.[] | select(.resolve) | .root_id' "$run/rechecked.json" 2>/dev/null); do
+  if gh api -X POST "repos/$repo/pulls/$pr/ccr/comments/$id/resolve" --silent; then
+    resolved=$((resolved + 1))
+  else
+    echo "Couldn't resolve thread $id."
+  fi
+done
+if [ "$resolved" = 1 ]; then
+  extra+=$'\n\nResolved one of my earlier threads, which is now addressed.'
+elif [ "$resolved" -gt 1 ]; then
+  extra+=$'\n\n'"Resolved $resolved of my earlier threads, which are now addressed."
+fi
+[ "$resolved" = 0 ] || echo "Resolved $resolved earlier thread(s)."
+
 payload=$(jq --arg event "$event" --arg extra "$extra" --arg footer "$footer" \
   '. + {event: $event, body: (.body + $extra + $footer)}' "$run/review.json")
 

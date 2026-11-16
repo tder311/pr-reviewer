@@ -2,7 +2,7 @@
 
 Drafts a review of a pull request when tder311 is asked to review it. The method follows Anthropic's [How the Claude Code team does code review](https://claude.dev/blog/solving-code-review-at-anthropic/): bug hunters search in parallel, three independent verifiers vote on each candidate, and a writer turns the survivors into a GitHub review.
 
-The output is a private brief, ending in a verdict, and a review. The review covers the Important findings (merging as is would break something) and any questions the author must answer before merge. Nits and pre-existing problems stay in the brief. The cloud task acts on the verdict with `auto-submit.sh`. It submits the review in tder311's name, with a footer saying it was posted automatically. A high-risk PR is never approved automatically: an Approve verdict there is posted as a Comment, and the approval waits for him. It holds the review as a pending review only he can see when a stage failed, the PR changed during the run, or there's nothing to post. For a held review, he replies in the run's session ("comment", "approve, add the nit", "discard") and the agent submits accordingly.
+The output is a private brief, ending in a verdict, and a review. The review covers the Important findings (merging as is would break something) and any questions the author must answer before merge. Nits and pre-existing problems stay in the brief. The cloud task acts on the verdict with `auto-submit.sh`. It submits the review in tder311's name, with a footer saying it was posted automatically. A high-risk PR is never approved automatically: an Approve verdict there is posted as a Comment, and the approval waits for him. It holds the review as a pending review only he can see when a stage failed, the PR changed during the run, or there's nothing to post. On a re-review, `threads.sh` lists his unresolved threads from earlier reviews, and two independent checks decide whether each is settled (fixed, or answered). `auto-submit.sh` resolves the settled ones when it submits. For a held review, he replies in the run's session ("comment", "approve, add the nit", "discard") and the agent submits accordingly.
 
 ## Run it
 
@@ -24,7 +24,7 @@ Runs count against the Claude plan the `claude` CLI is signed in with.
 
 ## Layout
 
-- `prompts/`: `hunt.md` plus one file per angle in `lenses/`, `dedupe.md`, `verify.md` plus one file per stance in `stances/`, and `write.md`
+- `prompts/`: `hunt.md` plus one file per angle in `lenses/`, `dedupe.md`, `verify.md` plus one file per stance in `stances/`, `recheck.md` plus one file per angle in `recheck/`, `severity.md`, and `write.md`
 - `schemas/`: the structured output each stage must return
 - `rubrics/`: per-repo checklists added to the hunters' prompts, named `<owner>__<repo>.md`
-- `gather.sh`, `claim.sh`, `stage.sh`, `review.jq`, `brief.jq`: plumbing for `review.sh`
+- `gather.sh`, `claim.sh`, `threads.sh`, `stage.sh`, `review.jq`, `brief.jq`: plumbing for `review.sh`

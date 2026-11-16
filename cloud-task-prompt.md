@@ -27,6 +27,7 @@ Put `CLAIM=1 ` in front unless step 1 said DRY-RUN. Put `FORCE=1 ` in front only
 The run directory is `runs/<owner>__<repo>-<N>`, with the slash in the repo name replaced by two underscores. Run `./auto-submit.sh <run directory>`. Tom set this task up to act on the verdict in `draft.json`, and the script decides what happens:
 
 - **Submitted**: it submits the review in Tom's name as Approve, Comment or Request changes, with a footer saying it was posted automatically, and prints `Submitted as <state>: <url>`. A high-risk PR is never approved automatically. If its verdict is Approve, the review is posted as a Comment saying Tom will approve it himself, and the script also prints `Approval waits for you: it's high risk.`
+- **Resolved threads**: before submitting, it resolves Tom's unresolved threads from earlier reviews that two independent checks agree are settled, and prints `Resolved <n> earlier thread(s).`
 - **Held**: it prints `Held for you: <reason>.` It holds when a stage failed, the PR changed or closed while it was being reviewed, or there's nothing to post. It then saves the Important findings as a PENDING review, if there are any.
 
 Run it once. Don't retry it, don't submit anything yourself, and never call any other GitHub endpoint that writes.
@@ -35,7 +36,7 @@ Run it once. Don't retry it, don't submit anything yourself, and never call any 
 
 Your final message is the full contents of `brief.md`, then the PR's Files changed link (`https://github.com/<owner/repo>/pull/<N>/files`), then what step 3 printed.
 
-- **Submitted**: send a push notification: `<repo>#<N>: <approved | commented | changes requested>. <PR title>`. Then stop.
+- **Submitted**: send a push notification: `<repo>#<N>: <approved | commented | changes requested>, <n> threads resolved. <PR title>`. Leave out the threads part if none were resolved. Then stop.
 - **Submitted, and the approval waits for Tom**: end your message with `Reply **approve** here once you've read it, or **request changes** with a summary.` Then send a push notification: `<repo>#<N>: commented; high risk, so the approval waits for you. Reply approve. <PR title>`. Then stop and wait.
 - **Held**: end your message with this line:
 

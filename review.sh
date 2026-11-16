@@ -58,6 +58,25 @@ fill() { sed -e "s|{{REPO}}|$repo|g; s|{{PR}}|$pr|g; s|{{RUN}}|$run|g; s|{{RANGE
 rubric=$here/rubrics/$slug.md
 [ -f "$rubric" ] || rubric=/dev/null
 
+# 0. Recheck your unresolved threads from earlier reviews: two independent checks each, alongside the hunters.
+"$here/threads.sh" "$repo" "$pr" "$me" >"$run/threads.json" || { echo "[]" >"$run/threads.json"; failed="$failed threads"; }
+mkdir -p "$run/recheck"
+jq -c '.[:10][]' "$run/threads.json" | while read -r t; do
+  id=$(jq -r .root_id <<<"$t")
+  for angle in from-code from-replies; do
+    {
+      fill <"$here/prompts/recheck.md"
+      cat "$here/prompts/recheck/$angle.md"
+      printf '\n## The thread\n\n'
+      jq . <<<"$t"
+    } >"$run/recheck/$id-$angle.md"
+  done
+done
+for p in "$run"/recheck/*.md; do
+  [ -e "$p" ] || break
+  "$here/stage.sh" "$verify_model" "$here/schemas/recheck.json" "$p" "${p%.md}.json" &
+done
+
 # 1. Hunt: one agent per lens, in parallel.
 for lens in $lenses; do
   cat "$here/prompts/hunt.md" "$here/prompts/lenses/$lens.md" "$rubric" | fill >"$run/hunt/$lens.md"
@@ -127,6 +146,20 @@ jq --slurpfile v "$run/verdicts.jsonl" --argjson need "$need" '
     | . + {kept: (.confirmed >= $need)}
   )' "$run/deduped.json" >"$run/votes.json"
 
+# A thread is settled, and gets resolved on submit, only if both checks say FIXED or ANSWERED.
+: >"$run/rechecks.jsonl"
+for f in "$run"/recheck/*.json; do
+  [ -e "$f" ] || break
+  b=$(basename "$f" .json)
+  jq -c --arg id "${b%%-*}" --arg angle "${b#*-}" '. + {id: $id, angle: $angle}' "$f" >>"$run/rechecks.jsonl"
+done
+checks=$((2 * $(jq '.[:10] | length' "$run/threads.json")))
+missing=$((checks - $(wc -l <"$run/rechecks.jsonl")))
+[ "$missing" -eq 0 ] || failed="$failed recheck:$missing-of-$checks"
+jq --slurpfile v "$run/rechecks.jsonl" '[.[:10][] | (.root_id | tostring) as $id | ($v | map(select(.id == $id))) as $votes
+  | {root_id, path, line, comment: .comments[0].body, votes: ($votes | map({angle, status, evidence})),
+     resolve: (($votes | length) == 2 and all($votes[]; .status != "OPEN"))}]' "$run/threads.json" >"$run/rechecked.json"
+
 # 4. Write: turn the survivors into Tom's draft and brief.
 {
   fill <"$here/prompts/write.md"
@@ -138,6 +171,8 @@ jq --slurpfile v "$run/verdicts.jsonl" --argjson need "$need" '
        | {id, path, line, claim, unsure: [.votes[] | select(.verdict == "UNSURE") | .evidence]}]' "$run/votes.json"
   printf '\n## Already raised\n\n'
   jq .already_raised "$run/deduped.json"
+  printf '\n## Tom'"'"'s earlier threads\n\n'
+  jq '[.[] | {path, line, comment, settled: .resolve, checks: [.votes[] | "\(.status): \(.evidence)"]}]' "$run/rechecked.json"
 } >"$run/write.md"
 "$here/stage.sh" "$write_model" "$here/schemas/draft.json" "$run/write.md" "$run/draft.json"
 
@@ -147,7 +182,7 @@ jq --arg sha "$sha" --rawfile lines "$run/diff-lines.txt" -f "$here/review.jq" "
 cost=$(find "$run" -name '*.raw' -exec jq '.total_cost_usd // 0' {} + | jq -s 'add * 100 | round / 100')
 jq -r --arg repo "$repo" --arg pr "$pr" --arg title "$title" --arg range "$range" \
   --arg mins "$((SECONDS / 60))" --arg cost "$cost" --arg need "$need" --arg failed "$failed" \
-  --slurpfile votes "$run/votes.json" --slurpfile filtered "$run/deduped.json" \
+  --slurpfile votes "$run/votes.json" --slurpfile filtered "$run/deduped.json" --slurpfile rechecked "$run/rechecked.json" \
   -f "$here/brief.jq" "$run/draft.json" >"$run/brief.md"
 
 echo "$run/brief.md"
