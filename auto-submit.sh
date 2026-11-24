@@ -46,7 +46,8 @@ case $decision in
     event=APPROVE
     if [ "$risk" = high ]; then
       event=COMMENT awaiting=1
-      extra=$'\n\nThis is a high-risk change, so I\'ll approve it myself once I\'ve read it.'
+      # ack-approve.sh looks for the first sentence, so keep it word for word.
+      extra=$'\n\nThis is a high-risk change, so I\'ll approve it myself once I\'ve read it. If you\'ve checked the risk and want it approved sooner, reply "high risk acknowledged, please approve".'
     fi
     ;;
   COMMENT | REQUEST_CHANGES)
