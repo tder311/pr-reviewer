@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Prints the review context for one PR as markdown: ./gather.sh owner/repo 123 tder311
 # Exits 3 when the PR isn't open or the reviewer isn't requested on it; FORCE=1 overrides that.
+# A request to one of PR_REVIEWER_TEAMS (space-separated slugs, default "australia") counts as a request
+# to the reviewer, unless they wrote the PR. The cloud can't look up team membership, so the list is fixed.
 # REST only: cloud sessions block GitHub's GraphQL API, which most `gh pr` commands use.
 set -euo pipefail
 
 repo=$1 pr=$2 me=$3
+teams=${PR_REVIEWER_TEAMS-australia}
 api=repos/$repo
 or_none() { local out; out=$(cat); echo "${out:-- none}"; }
 
@@ -14,8 +17,12 @@ if [ "${FORCE:-0}" != 1 ]; then
     echo "skip: $repo#$pr is $(jq -r 'if .merged then "merged" else .state end' <<<"$pr_json")" >&2
     exit 3
   fi
-  if ! jq -e --arg me "$me" '[.requested_reviewers[].login] | index($me)' <<<"$pr_json" >/dev/null; then
-    echo "skip: $me is not a requested reviewer on $repo#$pr" >&2
+  if ! jq -e --arg me "$me" --arg teams "$teams" '
+      ($teams | split(" ") | map(select(. != ""))) as $mine
+      | ([.requested_reviewers[].login] | index($me)) != null
+        or (.user.login != $me and any(.requested_teams[].slug; . as $t | $mine | index($t) != null))
+    ' <<<"$pr_json" >/dev/null; then
+    echo "skip: $me is not a requested reviewer on $repo#$pr, directly or through a team in \"$teams\"" >&2
     exit 3
   fi
 fi

@@ -16,9 +16,9 @@ The output is a private brief, ending in a verdict, and a review. The review cov
 
 The cloud task's prompt is `cloud-task-prompt.md`. After editing it, update the task to match.
 
-`review.sh` skips PRs that are closed or where tder311 isn't a requested reviewer; `FORCE=1` overrides that.
+`review.sh` skips PRs that are closed or where neither tder311 nor a team in `PR_REVIEWER_TEAMS` is a requested reviewer. A team request doesn't count on tder311's own PR. `FORCE=1` overrides that.
 
-Settings, all optional: `HUNT_MODEL` (opus), `VERIFY_MODEL` (sonnet), `WRITE_MODEL` (opus), `LENSES` (correctness data operations code-review), `VOTES_NEEDED` (2), `PARALLEL` (6), `REVIEWER` (tder311), `PR_REVIEWER_CACHE` (~/.cache/pr-reviewer), `CLAIM` (unset). With `CLAIM=1`, as the cloud task runs it, `review.sh` holds a placeholder pending review while it drafts. Every requested reviewer fires its own GitHub event, so this makes later runs for the same PR skip. `auto-submit.sh` or `post-pending.sh` replaces the placeholder.
+Settings, all optional: `HUNT_MODEL` (opus), `VERIFY_MODEL` (sonnet), `WRITE_MODEL` (opus), `LENSES` (correctness data operations code-review), `VOTES_NEEDED` (2), `PARALLEL` (6), `REVIEWER` (tder311), `PR_REVIEWER_TEAMS` (australia), `PR_REVIEWER_CACHE` (~/.cache/pr-reviewer), `CLAIM` (unset). With `CLAIM=1`, as the cloud task runs it, `review.sh` holds a placeholder pending review while it drafts. Every requested reviewer fires its own GitHub event, so this makes later runs for the same PR skip. `auto-submit.sh` or `post-pending.sh` replaces the placeholder.
 
 Runs count against the Claude plan the `claude` CLI is signed in with.
 
