@@ -4,6 +4,7 @@
 # Prints "Submitted as <state>: <url>", or "Held for you: <reason>." followed by what post-pending.sh did.
 # A high-risk PR is never approved: an Approve verdict is posted as a comment, and it adds "Approval waits for you".
 # Before submitting, it resolves your earlier threads that both rechecks say are settled.
+# It holds if you submitted a review of your own after the run started (meta.json "started").
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -28,6 +29,15 @@ hold() {
 [ -z "$failed" ] || hold "a stage failed (${failed# }), so the review may be incomplete"
 [ "$(gh api "repos/$repo/pulls/$pr" --jq '"\(.state) \(.head.sha)"')" = "open $sha" ] ||
   hold "the PR changed or closed while it was being reviewed"
+# If you reviewed the PR yourself while this run was drafting, your review stands and this one waits for you.
+started=$(jq -r '.started // empty' "$run/meta.json")
+if [ -n "$started" ]; then
+  me=$(jq -r '.reviewer // "tder311"' "$run/meta.json")
+  yours=$(gh api "repos/$repo/pulls/$pr/reviews" --paginate | jq -s -r --arg me "$me" --arg t "$started" '
+    [add // [] | .[] | select(.user.login == $me and .state != "PENDING" and .submitted_at >= $t)]
+    | last // empty | "\(.state | ascii_downcase | gsub("_"; " ")) at \(.submitted_at)"')
+  [ -z "$yours" ] || hold "you submitted your own review ($yours) while this one was being drafted"
+fi
 case $decision in
   APPROVE)
     [ "$important" = 0 ] || hold "the verdict is Approve, but there are Important findings"

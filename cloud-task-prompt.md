@@ -28,7 +28,7 @@ The run directory is `runs/<owner>__<repo>-<N>`, with the slash in the repo name
 
 - **Submitted**: it submits the review in Tom's name as Approve, Comment or Request changes, with a footer saying it was posted automatically, and prints `Submitted as <state>: <url>`. A high-risk PR is never approved automatically. If its verdict is Approve, the review is posted as a Comment saying Tom will approve it himself, and the script also prints `Approval waits for you: it's high risk.`
 - **Resolved threads**: before submitting, it resolves Tom's unresolved threads from earlier reviews that two independent checks agree are settled, and prints `Resolved <n> earlier thread(s).`
-- **Held**: it prints `Held for you: <reason>.` It holds when a stage failed, the PR changed or closed while it was being reviewed, or there's nothing to post. It then saves the Important findings as a PENDING review, if there are any.
+- **Held**: it prints `Held for you: <reason>.` It holds when a stage failed, the PR changed or closed while it was being reviewed, Tom submitted his own review while it was being drafted, or there's nothing to post. It then saves the Important findings as a PENDING review, if there are any.
 
 Run it once. Don't retry it, don't submit anything yourself, and never call any other GitHub endpoint that writes.
 
@@ -59,7 +59,7 @@ After any command here prints `Submitted as <state>`, do step 6 with that state.
 
 ## 6. Slack status
 
-Do this after step 3 submits or holds the review, and after any review submitted from step 5. Never do it for a discarded review or a dry run. The state is the one in the `Submitted as <state>` line, or HELD if step 3 printed `Held for you`.
+Do this after step 3 submits or holds the review, and after any review submitted from step 5. Never do it for a discarded review, a dry run, or a review held because Tom submitted his own while it was being drafted: his review already shows where the PR stands. The state is the one in the `Submitted as <state>` line, or HELD if step 3 printed `Held for you`.
 
 1. Read the latest 100 messages of Slack channel `C0BMX8VU1S7` with `slack_read_channel`. It's the only channel you may read or post in.
 2. Find the most recent top-level message that links this PR: `github.com/<owner/repo>/pull/<N>`, with no digit straight after `<N>`. If there isn't one, post nothing and report "No Slack thread for this PR."

@@ -15,6 +15,7 @@ slug=${repo//\//__}
 export WORK=${PR_REVIEWER_WORK:-${PR_REVIEWER_CACHE:-$HOME/.cache/pr-reviewer}/$slug}
 run=$here/runs/$slug-$pr
 SECONDS=0
+started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 failed=""
 
 rm -rf "$run"
@@ -176,8 +177,8 @@ jq --slurpfile v "$run/rechecks.jsonl" '[.[:10][] | (.root_id | tostring) as $id
 } >"$run/write.md"
 "$here/stage.sh" "$write_model" "$here/schemas/draft.json" "$run/write.md" "$run/draft.json"
 
-jq -n --arg repo "$repo" --argjson pr "$pr" --arg sha "$sha" --arg failed "$failed" \
-  '{repo: $repo, pr: $pr, sha: $sha, failed: $failed}' >"$run/meta.json"
+jq -n --arg repo "$repo" --argjson pr "$pr" --arg sha "$sha" --arg failed "$failed" --arg me "$me" --arg started "$started" \
+  '{repo: $repo, pr: $pr, sha: $sha, failed: $failed, reviewer: $me, started: $started}' >"$run/meta.json"
 jq --arg sha "$sha" --rawfile lines "$run/diff-lines.txt" -f "$here/review.jq" "$run/draft.json" >"$run/review.json"
 cost=$(find "$run" -name '*.raw' -exec jq '.total_cost_usd // 0' {} + | jq -s 'add * 100 | round / 100')
 jq -r --arg repo "$repo" --arg pr "$pr" --arg title "$title" --arg range "$range" \
